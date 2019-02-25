@@ -25,6 +25,7 @@ private:
     int                 mErrorCount;
     std::string         mNoteName;
     bool                mIsPaused;
+    bool                mResetFlag;
 
 public:
 						CircleNode(const sf::Font& font, sf::Vector2f position, const unsigned& category, const std::string& noteName);
@@ -48,6 +49,8 @@ public:
     bool                isInPauseState() const;
     void                skip();
     void                resetCurrentPattern();
+    bool                wasResetted() const;
+    void                deactivateResetFlag();
 
     std::string         getNoteName() const;
 

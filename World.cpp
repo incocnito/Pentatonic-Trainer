@@ -145,6 +145,7 @@ void World::updateQuestionState()
 {
     unsigned pentatonicGuessed = 0, diatonicGuessed = 0, majorRootGuessed = 0, minorRootGuessed = 0;
     int errorCount = 0;
+    bool reset = false;
     for(const auto& i : mSceneGraph.getTree())
     {
         CircleNode* node = dynamic_cast<CircleNode*>(i.get());
@@ -152,6 +153,11 @@ void World::updateQuestionState()
         {
             if(node->isInPauseState())
                 return;
+            if(node->wasResetted())
+            {
+                reset = true;
+                node->deactivateResetFlag();
+            }
             errorCount += node->getErrorCount();
             if(node->guessed())
             {
@@ -182,6 +188,9 @@ void World::updateQuestionState()
         }
     }
     mTotalErrorCount = errorCount;
+
+    if(reset)
+        mCurrentQuestionState = Category::Pentatonic;
 
     if(mCurrentQuestionState == Category::Pentatonic && pentatonicGuessed == mPatterns[mCurrentPatternIndex].numberOfPentatonicNotes)
         mCurrentQuestionState = Category::Diatonic;
