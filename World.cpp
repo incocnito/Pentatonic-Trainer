@@ -118,7 +118,6 @@ void World::initializePatterns()
     mPatterns.push_back(Pattern(pattern3, "Pentatonic: Pattern 3"));
     mPatterns.push_back(Pattern(pattern4, "Pentatonic: Pattern 4"));
     mPatterns.push_back(Pattern(pattern5, "Pentatonic: Pattern 5"));
-    std::random_shuffle(mPatterns.begin(), mPatterns.end(), [] (int i) { return std::rand() % i; } );
 }
 
 const sf::Font& World::getFont() const
@@ -151,6 +150,8 @@ void World::updateQuestionState()
         CircleNode* node = dynamic_cast<CircleNode*>(i.get());
         if(node != nullptr)
         {
+            if(node->isInPauseState())
+                return;
             errorCount += node->getErrorCount();
             if(node->guessed())
             {
@@ -184,11 +185,11 @@ void World::updateQuestionState()
 
     if(mCurrentQuestionState == Category::Pentatonic && pentatonicGuessed == mPatterns[mCurrentPatternIndex].numberOfPentatonicNotes)
         mCurrentQuestionState = Category::Diatonic;
-    else if(mCurrentQuestionState == Category::Diatonic && diatonicGuessed == mPatterns[mCurrentPatternIndex].numberOfDiatonicNotes)
+    if(mCurrentQuestionState == Category::Diatonic && diatonicGuessed == mPatterns[mCurrentPatternIndex].numberOfDiatonicNotes)
         mCurrentQuestionState = Category::MajorRoot;
-    else if(mCurrentQuestionState == Category::MajorRoot && majorRootGuessed == mPatterns[mCurrentPatternIndex].numberOfMajorRoots)
+    if(mCurrentQuestionState == Category::MajorRoot && majorRootGuessed == mPatterns[mCurrentPatternIndex].numberOfMajorRoots)
         mCurrentQuestionState = Category::MinorRoot;
-    else if(mCurrentQuestionState == Category::MinorRoot && minorRootGuessed == mPatterns[mCurrentPatternIndex].numberOfMinorRoots)
+    if(mCurrentQuestionState == Category::MinorRoot && minorRootGuessed == mPatterns[mCurrentPatternIndex].numberOfMinorRoots)
         mCurrentQuestionState = Category::None;
 
     if(mCurrentQuestionState == Category::None)
@@ -204,7 +205,7 @@ void World::updateQuestionState()
 
 void World::setNextPatternActive()
 {
-    if(++mCurrentPatternIndex == mPatterns.size() - 1)
+    if(++mCurrentPatternIndex == mPatterns.size())
         mCurrentPatternIndex = 0;
     mCurrentQuestionState = Category::Pentatonic;
     int i = 0, j = 0;
@@ -220,7 +221,6 @@ void World::setNextPatternActive()
             ++i;
         }
     }
-    sf::sleep(sf::seconds(1.5));
 }
 
 int World::getTotalErrorCount() const

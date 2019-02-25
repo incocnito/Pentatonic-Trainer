@@ -1,7 +1,7 @@
 #include "Game.h"
 
 Game::Game() :
-    mWindow(sf::VideoMode(800, 600), "Pentatonic-Trainer 1.0", sf::Style::Close)
+    mWindow(sf::VideoMode(800, 600), "Pentatonic-Trainer 1.1", sf::Style::Close)
 {
     mWindow.setFramerateLimit(30);
     #ifdef SOUND_ON
@@ -70,5 +70,8 @@ void Game::updateHeadline()
     addText(217, 35, mWorld.getActivePatternName(), sf::Color::Black, 20);
     addText(227, 101, "Click on the " + mWorld.getActiveQuestionName() + " notes!");
     addText(591, 177, "Mistakes: " + std::to_string(mWorld.getTotalErrorCount()), sf::Color::Red, 20);
+    addText(560, 230, "Press A to see the solution.");
+    addText(560, 250, "Press N to skip to the next pattern.");
+    addText(560, 270, "Press R to reset the current pattern.");
 }
 

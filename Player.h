@@ -73,6 +73,9 @@ public:
 public:
     //List of commands
 	void    selectCircle(const sf::Vector2i& mousePosition, CommandQueue& commands);
+	void    showSolution(CommandQueue& commands);
+	void    skipToNextPattern(CommandQueue& commands);
+	void    resetCurrentPattern(CommandQueue& commands);
 };
 
 #endif // PLAYER_H_INCLUDED

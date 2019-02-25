@@ -4,7 +4,8 @@ CircleNode::CircleNode(const sf::Font& font, sf::Vector2f position, const unsign
 	mGuessed(false),
 	mRootGuessed(false),
 	mErrorCount(0),
-	mNoteName(noteName)
+	mNoteName(noteName),
+	mIsPaused(false)
 {
     mCircle.setPosition(sf::Vector2f(position.x+5, position.y-1));
 	mCircle.setRadius(13);
@@ -101,6 +102,7 @@ void CircleNode::resetStates()
 {
     mGuessed = false;
     mRootGuessed = false;
+    mIsPaused = false;
     setText("");
     mCircle.setFillColor(sf::Color::Transparent);
     mErrorCount = 0;
@@ -129,4 +131,24 @@ void CircleNode::hideCircle()
 std::string CircleNode::getNoteName() const
 {
     return mNoteName;
+}
+
+void CircleNode::setPauseState()
+{
+    mIsPaused = true;
+    mGuessed = true;
+    mRootGuessed = true;
+    setGuessedToTrue();
+}
+
+bool CircleNode::isInPauseState() const
+{
+    return mIsPaused;
+}
+
+void CircleNode::skip()
+{
+    mGuessed = true;
+    mRootGuessed = true;
+    mIsPaused = false;
 }

@@ -24,6 +24,7 @@ private:
     bool                mRootGuessed;
     int                 mErrorCount;
     std::string         mNoteName;
+    bool                mIsPaused;
 
 public:
 						CircleNode(const sf::Font& font, sf::Vector2f position, const unsigned& category, const std::string& noteName);
@@ -43,6 +44,11 @@ public:
     void                increaseErrorCount();
     void                showCircle();
     void                hideCircle();
+    void                setPauseState();
+    bool                isInPauseState() const;
+    void                skip();
+    void                resetCurrentPattern();
+
     std::string         getNoteName() const;
 
 private:
