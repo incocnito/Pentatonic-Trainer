@@ -69,6 +69,6 @@ void Game::updateHeadline()
 {
     addText(217, 35, mWorld.getActivePatternName(), sf::Color::Black, 20);
     addText(227, 101, "Click on the " + mWorld.getActiveQuestionName() + " notes!");
-    addText(591, 177, "Fehler: " + std::to_string(mWorld.getTotalErrorCount()), sf::Color::Red, 20);
+    addText(591, 177, "Mistakes: " + std::to_string(mWorld.getTotalErrorCount()), sf::Color::Red, 20);
 }
 
