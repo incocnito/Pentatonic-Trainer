@@ -1,8 +1,13 @@
 #include "Game.h"
 
 Game::Game() :
-    mWindow(sf::VideoMode(800, 600), "Pentatonic-Trainer 1.1", sf::Style::Close)
+    mWindow(sf::VideoMode(800, 600), "Pentatonic-Trainer 2.0", sf::Style::Close)
 {
+    addButton(50, 30, sf::Vector2f(220, 35));
+    addButton(50, 30, sf::Vector2f(490, 35));
+    addButton(200, 30, sf::Vector2f(560, 230));
+    addButton(200, 30, sf::Vector2f(560, 270));
+    addButton(200, 30, sf::Vector2f(560, 310));
     mWindow.setFramerateLimit(30);
     #ifdef SOUND_ON
     addText(100, 100, "Loading Sounds...", sf::Color::White);
@@ -10,6 +15,16 @@ Game::Game() :
     mWindow.display();
     mPlayer.loadSounds();
     #endif
+}
+
+void Game::addButton(int width, int height, const sf::Vector2f& position)
+{
+    sf::RectangleShape button;
+    button.setPosition(position);
+	button.setSize(sf::Vector2f(width, height));
+	button.setOutlineColor(sf::Color::Black);
+	button.setOutlineThickness(2.f);
+	mButtons.push_back(button);
 }
 
 void Game::update()
@@ -24,18 +39,22 @@ void Game::processInput()
     sf::Event event;
     while(mWindow.pollEvent(event))
     {
-        mPlayer.handleEvent(event, commands);
+        mPlayer.handleEvent(event, mButtons, commands);
         if(event.type == sf::Event::Closed ||
 			(event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
 			mWindow.close();
     }
-    mPlayer.handleRealtimeInput(mWindow, commands);
+    mPlayer.handleRealtimeInput(mWindow, mButtons, commands);
 }
 
 void Game::render()
 {
     mWindow.clear();
     mWindow.draw(mWorld);
+    if(mWorld.bassStateActive())
+        mButtons[4].setOutlineColor(sf::Color::Blue);
+    for(auto& button : mButtons)
+        mWindow.draw(button);
     while(!mTextStack.empty())
     {
         mWindow.draw(mTextStack.top());
@@ -67,11 +86,16 @@ void Game::addText(float x, float y, const std::string& string, const sf::Color&
 
 void Game::updateHeadline()
 {
-    addText(217, 35, mWorld.getActivePatternName(), sf::Color::Black, 20);
-    addText(227, 101, "Click on the " + mWorld.getActiveQuestionName() + " notes!");
-    addText(591, 177, "Mistakes: " + std::to_string(mWorld.getTotalErrorCount()), sf::Color::Red, 20);
-    addText(560, 230, "Press A to see the solution.");
-    addText(560, 250, "Press N to skip to the next pattern.");
-    addText(560, 270, "Press R to reset the current pattern.");
+    addText(240, 35, "<-", sf::Color::Black, 20);
+    addText(510, 35, "->", sf::Color::Black, 20);
+    addText(565, 230, "Show solution [S]", sf::Color::Black, 20);
+    addText(565, 270, "Reset [R]", sf::Color::Black, 20);
+    addText(565, 310, "Toggle bass mode [B]", sf::Color::Black, 20);
+    addText(290, 35, mWorld.getActivePatternName(), sf::Color::Black, 20);
+    if(mWorld.getActiveQuestionName() == "None")
+        addText(280, 101, "You finished this pattern. Hooray!");
+    else
+        addText(280, 101, "Click on the " + mWorld.getActiveQuestionName() + " notes!");
+    addText(590, 175, "Mistakes: " + std::to_string(mWorld.getTotalErrorCount()), sf::Color::Red, 20);
 }
 

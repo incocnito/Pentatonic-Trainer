@@ -24,6 +24,7 @@ public:
 	virtual unsigned		getCategory() const;
 	void					onCommand(const Command& command);
 	void                    setCategory(const unsigned& category);
+	void                    clearTree();
 
 	const std::vector<Ptr>&	getTree() const;
 

@@ -53,6 +53,9 @@ private:
             return *this;
         }
     };
+
+    bool                    mBassPitchActive;
+
 private:
     void					createCommand(	const std::function<void(SceneNode&)>& action,
 											unsigned category);
@@ -64,18 +67,20 @@ private:
 
 public:
 	Player();
-	void	handleEvent(const sf::Event& event, CommandQueue& commands);
-	void	handleRealtimeInput(const sf::RenderWindow& window, CommandQueue& commands);
+	void	handleEvent(const sf::Event& event, std::vector<sf::RectangleShape>& buttons, CommandQueue& commands);
+	void	handleRealtimeInput(const sf::RenderWindow& window, std::vector<sf::RectangleShape>& buttons, CommandQueue& commands);
 	#ifdef SOUND_ON
 	void    loadSounds();
 	#endif
 
 public:
     //List of commands
-	void    selectCircle(const sf::Vector2i& mousePosition, CommandQueue& commands);
+	void    selectCircle(const sf::Vector2f& mousePosition, CommandQueue& commands);
 	void    showSolution(CommandQueue& commands);
 	void    skipToNextPattern(CommandQueue& commands);
+	void    skipToPreviousPattern(CommandQueue& commands);
 	void    resetCurrentPattern(CommandQueue& commands);
+	void    toggleBassState(CommandQueue& commands);
 };
 
 #endif // PLAYER_H_INCLUDED

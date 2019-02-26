@@ -10,6 +10,7 @@
 #include "CommandQueue.h"
 #include "SceneNode.h"
 #include "CircleNode.h"
+#include "CommunicatorNode.h"
 
 #include <algorithm>
 #include <ctime>
@@ -18,16 +19,45 @@
 typedef std::vector<std::vector<unsigned>> Vec2D;
 typedef std::vector<std::vector<std::string>> Notes;
 
-const int FIELD_SIZE = 6;
-
 class World : public sf::Drawable, private sf::NonCopyable
 {
 public:
+    struct IterationLimits
+    {
+        IterationLimits()
+        {
+            setGuitarLimits();
+        }
+
+        unsigned xMin;
+        unsigned xMax;
+        unsigned yMin;
+        unsigned yMax;
+        void setGuitarLimits()
+        {
+            xMin = 0;
+            xMax = 6;
+            yMin = 0;
+            yMax = 6;
+        }
+        void setBassLimits()
+        {
+            xMin = 0;
+            xMax = 6;
+            yMin = 2;
+            yMax = 6;
+        }
+    };
+
     struct Pattern
     {
-        Pattern(const Vec2D& categoryInformation, const std::string& name) :
+        Pattern(const Vec2D& categoryInformation, const std::string& name, const IterationLimits& limits) :
             mCategoryInformation(categoryInformation),
             mName(name)
+        {
+            countNotes(limits);
+        }
+        void countNotes(const IterationLimits& limits)
         {
             using namespace Category;
             numberOfPentatonicNotes = 0;
@@ -35,9 +65,9 @@ public:
             numberOfMajorRoots = 0;
             numberOfMinorRoots = 0;
 
-            for(int i = 0; i < FIELD_SIZE; ++i)
+            for(int i = limits.yMin; i < limits.yMax; ++i)
             {
-                for(int j = 0; j < FIELD_SIZE; ++j)
+                for(int j = limits.xMin; j < limits.xMax; ++j)
                 {
                     unsigned cat = mCategoryInformation[i][j];
                     if(cat & Pentatonic || cat & MajorRoot || cat & MinorRoot)
@@ -52,6 +82,7 @@ public:
                 }
             }
         }
+
         Vec2D                   mCategoryInformation;
         std::string             mName;
         unsigned                numberOfPentatonicNotes;
@@ -60,19 +91,24 @@ public:
         unsigned                numberOfMinorRoots;
     };
 
+
 private:
     SceneNode                       mSceneGraph;
+    CommunicatorNode*               mCommunicator;
     CommandQueue                    mCommandQueue;
 
     sf::Sprite                      mBackgroundSprite;
     sf::Texture                     mBackgroundTexture;
     sf::Font                        mFont;
 
+    IterationLimits                 mIterationLimits;
+
     std::vector<Pattern>            mPatterns;
     Notes                           mNotePattern;
     unsigned                        mCurrentPatternIndex;
     unsigned                        mCurrentQuestionState;
     int                             mTotalErrorCount;
+    bool                            mBassStateActive;
 
 public:
                                     World();
@@ -83,16 +119,22 @@ public:
     std::string                     getActiveQuestionName() const;
     std::string                     getActivePatternName() const;
     int                             getTotalErrorCount() const;
+    void                            toggleBassState();
+    IterationLimits                 getIterationLimits() const;
+    bool                            bassStateActive() const;
 
 private:
     void                            draw(sf::RenderTarget& target, sf::RenderStates states) const;
     //in zukunft: kein festes 6x6 feld, sondern jedes feld wird mit dem pattern erzeugt und bei einem
     //neuen pattern ersetzt
     void                            loadPatternsFromFolder(const std::string& path);
-    void                            addGameField(const sf::Vector2f& rootPosition);
-    void                            setNextPatternActive();
+    void                            addGameField();
     void                            initializePatterns();
     void                            updateQuestionState();
+    void                            showNextPattern();
+    void                            showPreviousPattern();
+    void                            checkCommunicator();
+    void                            copyCurrentPatternToNodes();
 
 };
 

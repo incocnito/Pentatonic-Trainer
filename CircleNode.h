@@ -24,8 +24,7 @@ private:
     bool                mRootGuessed;
     int                 mErrorCount;
     std::string         mNoteName;
-    bool                mIsPaused;
-    bool                mResetFlag;
+    bool                mIsShowingSolution;
 
 public:
 						CircleNode(const sf::Font& font, sf::Vector2f position, const unsigned& category, const std::string& noteName);
@@ -34,7 +33,7 @@ public:
 	virtual void		updateCurrent();
 
     void 				setText(const std::string& s);
-    bool				contains(sf::Vector2i position) const;
+    bool				contains(sf::Vector2f position) const;
     bool                correctGuess() const;
     bool                guessed() const;
     bool                rootGuessed() const;
@@ -45,12 +44,9 @@ public:
     void                increaseErrorCount();
     void                showCircle();
     void                hideCircle();
-    void                setPauseState();
-    bool                isInPauseState() const;
-    void                skip();
-    void                resetCurrentPattern();
-    bool                wasResetted() const;
-    void                deactivateResetFlag();
+    void                enableSolutionState();
+    bool                isShowingSolution() const;
+    unsigned            getCurrentQuestionState() const;
 
     std::string         getNoteName() const;
 

@@ -5,8 +5,7 @@ CircleNode::CircleNode(const sf::Font& font, sf::Vector2f position, const unsign
 	mRootGuessed(false),
 	mErrorCount(0),
 	mNoteName(noteName),
-	mIsPaused(false),
-	mResetFlag(false)
+	mIsShowingSolution(false)
 {
     mCircle.setPosition(sf::Vector2f(position.x+5, position.y-1));
 	mCircle.setRadius(13);
@@ -32,9 +31,9 @@ void CircleNode::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	target.draw(mText);
 }
 
-bool CircleNode::contains(sf::Vector2i position) const
+bool CircleNode::contains(sf::Vector2f position) const
 {
-	return mCircle.getGlobalBounds().contains(sf::Vector2f(position));
+	return mCircle.getGlobalBounds().contains(position);
 }
 
 void CircleNode::drawCurrent(sf::RenderTarget& target, sf::RenderStates states) const
@@ -103,8 +102,7 @@ void CircleNode::resetStates()
 {
     mGuessed = false;
     mRootGuessed = false;
-    mIsPaused = false;
-    mResetFlag = true;
+    mIsShowingSolution = false;
     setText("");
     mCircle.setFillColor(sf::Color::Transparent);
     mErrorCount = 0;
@@ -135,32 +133,20 @@ std::string CircleNode::getNoteName() const
     return mNoteName;
 }
 
-void CircleNode::setPauseState()
+void CircleNode::enableSolutionState()
 {
-    mIsPaused = true;
+    mIsShowingSolution = true;
     mGuessed = true;
     mRootGuessed = true;
     setGuessedToTrue();
 }
 
-bool CircleNode::isInPauseState() const
+bool CircleNode::isShowingSolution() const
 {
-    return mIsPaused;
+    return mIsShowingSolution;
 }
 
-void CircleNode::skip()
+unsigned CircleNode::getCurrentQuestionState() const
 {
-    mGuessed = true;
-    mRootGuessed = true;
-    mIsPaused = false;
-}
-
-bool CircleNode::wasResetted() const
-{
-    return mResetFlag;
-}
-
-void CircleNode::deactivateResetFlag()
-{
-    mResetFlag = false;
+    return mCurrentQuestionState;
 }

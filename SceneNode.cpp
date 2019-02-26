@@ -82,3 +82,8 @@ const std::vector<SceneNode::Ptr>& SceneNode::getTree() const
 	return mChildren;
 }
 
+void SceneNode::clearTree()
+{
+    mChildren.erase(mChildren.begin(), mChildren.end());
+}
+

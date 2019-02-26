@@ -5,14 +5,15 @@
 
 #include <tuple>
 
-Player::Player()
+Player::Player() :
+    mBassPitchActive(false)
 {
 
 }
 
-void Player::handleRealtimeInput(const sf::RenderWindow& window, CommandQueue& commands)
+void Player::handleRealtimeInput(const sf::RenderWindow& window, std::vector<sf::RectangleShape>& buttons, CommandQueue& commands)
 {
-    sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
+    sf::Vector2f mousePosition = sf::Vector2f(sf::Mouse::getPosition(window));
     Command command;
     command.category = Category::All;
     command.action = [=] (SceneNode& s)
@@ -27,27 +28,65 @@ void Player::handleRealtimeInput(const sf::RenderWindow& window, CommandQueue& c
         }
     };
     commands.push(command);
+    for(int i = 0; i < buttons.size(); ++i)
+    {
+        if(buttons[i].getGlobalBounds().contains(mousePosition))
+            buttons[i].setOutlineColor(sf::Color::Blue);
+        else
+            buttons[i].setOutlineColor(sf::Color::Black);
+    }
 }
 
-void Player::handleEvent(const sf::Event& event, CommandQueue& commands)
+void Player::handleEvent(const sf::Event& event, std::vector<sf::RectangleShape>& buttons, CommandQueue& commands)
 {
     if(event.type == sf::Event::MouseButtonPressed)
     {
         if(event.mouseButton.button == sf::Mouse::Left)
-            selectCircle(sf::Vector2i(event.mouseButton.x, event.mouseButton.y), commands);
+        {
+            sf::Vector2f position = sf::Vector2f(event.mouseButton.x, event.mouseButton.y);
+            selectCircle(position, commands);
+            for(int i = 0; i < buttons.size(); ++i)
+            {
+                if(buttons[i].getGlobalBounds().contains(position))
+                {
+                    switch(i)
+                    {
+                    case 0:
+                        skipToPreviousPattern(commands);
+                        break;
+                    case 1:
+                        skipToNextPattern(commands);
+                        break;
+                    case 2:
+                        showSolution(commands);
+                        break;
+                    case 3:
+                        resetCurrentPattern(commands);
+                        break;
+                    case 4:
+                        toggleBassState(commands);
+                        break;
+                    }
+                }
+            }
+        }
     }
     else if(event.type == sf::Event::KeyPressed)
     {
-        if(event.key.code == sf::Keyboard::A)
+        if(event.key.code == sf::Keyboard::S)
             showSolution(commands);
-        else if(event.key.code == sf::Keyboard::N)
+        else if(event.key.code == sf::Keyboard::Right)
             skipToNextPattern(commands);
+        else if(event.key.code == sf::Keyboard::Left)
+            skipToPreviousPattern(commands);
         else if(event.key.code == sf::Keyboard::R)
             resetCurrentPattern(commands);
+        else if(event.key.code == sf::Keyboard::B)
+            toggleBassState(commands);
     }
 }
 
-void Player::selectCircle(const sf::Vector2i& mousePosition, CommandQueue& commands)
+void Player::selectCircle(const sf::Vector2f& mousePosition, CommandQueue& commands)
 {
     Command command;
     command.category = Category::All;
@@ -62,7 +101,7 @@ void Player::selectCircle(const sf::Vector2i& mousePosition, CommandQueue& comma
                 {
                     node->setGuessedToTrue();
                     #ifdef SOUND_ON
-                    if(!node->isInPauseState())
+                    if(!node->isShowingSolution() && node->getCurrentQuestionState() != Category::None)
                     {
                         for(int i = 0; i < 6; ++i)
                         {
@@ -79,9 +118,10 @@ void Player::selectCircle(const sf::Vector2i& mousePosition, CommandQueue& comma
 
                 else
                 {
-                    node->increaseErrorCount();
+                    if(node->getCurrentQuestionState() != Category::None)
+                        node->increaseErrorCount();
                     #ifdef SOUND_ON
-                    if(!node->isInPauseState())
+                    if(!node->isShowingSolution() && node->getCurrentQuestionState() != Category::None)
                         mWrongSound.play();
                     #endif
                 }
@@ -120,7 +160,7 @@ void Player::showSolution(CommandQueue& commands)
     {
         CircleNode* node = dynamic_cast<CircleNode*>(&s);
         if(node != nullptr)
-            node->setPauseState();
+            node->enableSolutionState();
     };
     commands.push(command);
 }
@@ -128,15 +168,25 @@ void Player::showSolution(CommandQueue& commands)
 void Player::skipToNextPattern(CommandQueue& commands)
 {
     Command command;
-    command.category = Category::All;
+    command.category = Category::Communicator;
     command.action = [=] (SceneNode& s)
     {
-        CircleNode* node = dynamic_cast<CircleNode*>(&s);
+        CommunicatorNode* node = dynamic_cast<CommunicatorNode*>(&s);
         if(node != nullptr)
-        {
-            node->skip();
-        }
+            node->mShowNextPatternState = true;
+    };
+    commands.push(command);
+}
 
+void Player::skipToPreviousPattern(CommandQueue& commands)
+{
+    Command command;
+    command.category = Category::Communicator;
+    command.action = [=] (SceneNode& s)
+    {
+        CommunicatorNode* node = dynamic_cast<CommunicatorNode*>(&s);
+        if(node != nullptr)
+            node->mShowPreviousPatternState = true;
     };
     commands.push(command);
 }
@@ -149,10 +199,39 @@ void Player::resetCurrentPattern(CommandQueue& commands)
     {
         CircleNode* node = dynamic_cast<CircleNode*>(&s);
         if(node != nullptr)
-        {
             node->resetStates();
-        }
-
     };
     commands.push(command);
+    command.category = Category::Communicator;
+    command.action = [=] (SceneNode& s)
+    {
+        CommunicatorNode* node = dynamic_cast<CommunicatorNode*>(&s);
+        if(node != nullptr)
+            node->mResetCurrentPatternState = true;
+    };
+    commands.push(command);
+}
+
+void Player::toggleBassState(CommandQueue& commands)
+{
+    mBassPitchActive = !mBassPitchActive;
+    Command command;
+    command.category = Category::Communicator;
+    command.action = [=] (SceneNode& s)
+    {
+        CommunicatorNode* node = dynamic_cast<CommunicatorNode*>(&s);
+        if(node != nullptr)
+            node->mToggleBassState = true;
+    };
+    commands.push(command);
+    #ifdef SOUND_ON
+    for(int i = 0; i < 6; ++i)
+    {
+        for(int j = 0; j < 6; ++j)
+        {
+            std::get<1>(mNotes[i][j]).setPitch(mBassPitchActive? 0.5 : 1);
+            std::get<1>(mNotes[i][j]).stop();
+        }
+    }
+    #endif
 }

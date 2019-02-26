@@ -13,10 +13,12 @@
 class Game : private sf::NonCopyable
 {
 private:
-    sf::RenderWindow        mWindow;
-    World                   mWorld;
-    Player                  mPlayer;
-    std::stack<sf::Text>    mTextStack;
+    sf::RenderWindow                mWindow;
+    World                           mWorld;
+    Player                          mPlayer;
+    std::stack<sf::Text>            mTextStack;
+
+    std::vector<sf::RectangleShape> mButtons;
 
 private:
     void                    update();
@@ -24,6 +26,7 @@ private:
     void                    render();
     void					addText(float x, float y, const std::string& text, const sf::Color& color = sf::Color::Black, int characterSize = 15);
     void                    updateHeadline();
+    void                    addButton(int width, int height, const sf::Vector2f& position);
 
 public:
                             Game();

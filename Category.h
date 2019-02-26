@@ -10,7 +10,8 @@ namespace Category
         Diatonic            = 1 << 2,
         MajorRoot           = 1 << 3,
         MinorRoot           = 1 << 4,
-        All                 = None | Pentatonic | Diatonic | MajorRoot | MinorRoot
+        All                 = None | Pentatonic | Diatonic | MajorRoot | MinorRoot,
+        Communicator        = 1 << 5
     };
 };
 

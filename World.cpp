@@ -1,8 +1,6 @@
 #include "World.h"
 #include "Category.h"
 
-#include <fstream>
-
 World::World() :
     mCurrentPatternIndex(0),
     mCurrentQuestionState(Category::Pentatonic),
@@ -15,34 +13,43 @@ World::World() :
         { "D0", "D1", "D2", "D3", "D4", "D5" },
         { "A0", "A1", "A2", "A3", "A4", "A5" },
         { "E0", "E1", "E2", "E3", "E4", "E5" }
-    }
+    },
+    mBassStateActive(false)
 {
-    std::srand(std::time(0));
+
 	mFont.loadFromFile("resources/arial.ttf");
     mBackgroundTexture.loadFromFile("resources/Griffbrett.png");
     mBackgroundSprite.setTexture(mBackgroundTexture);
 
     initializePatterns();
 
-    addGameField(sf::Vector2f(282, 175));
+    addGameField();
 }
 
-void World::addGameField(const sf::Vector2f& rootPosition)
+void World::addGameField()
 {
-    //282, 320, 356, 393, 430, -> 37er-schritte horizontal
-    //175, 209, 242, 275, 310, -> 34er-schritte vertikal
+    mSceneGraph.clearTree();
+    sf::Vector2f rootPosition(282, 175);
+    if(mBassStateActive)
+        rootPosition.y = 243;
     sf::Vector2f currentPosition = rootPosition;
-    for(int i = 0; i < FIELD_SIZE; ++i)
+
+    for(int i = mIterationLimits.yMin; i < mIterationLimits.yMax; ++i)
     {
-        for(int j = 0; j < FIELD_SIZE; ++j)
+        for(int j = mIterationLimits.xMin; j < mIterationLimits.xMax; ++j)
         {
-            std::unique_ptr<CircleNode> square(new CircleNode(mFont, currentPosition, mPatterns[0].mCategoryInformation[i][j], mNotePattern[i][j]));
+            std::unique_ptr<CircleNode> square(new CircleNode(mFont, currentPosition, Category::None, mNotePattern[i][j]));
             mSceneGraph.attachChild(std::move(std::unique_ptr<CircleNode>(std::move(square))));
             currentPosition.x += 37;
         }
         currentPosition.y += 34;
         currentPosition.x = rootPosition.x;
     }
+    std::unique_ptr<CommunicatorNode> node(new CommunicatorNode);
+    node->setCategory(Category::Communicator);
+    mCommunicator = node.get();
+    mSceneGraph.attachChild(std::move(std::unique_ptr<CommunicatorNode>(std::move(node))));
+    copyCurrentPatternToNodes();
 }
 
 CommandQueue& World::getCommandQueue()
@@ -58,6 +65,7 @@ void World::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 void World::update()
 {
+    checkCommunicator();
     updateQuestionState();
 	while(!mCommandQueue.isEmpty())
 		mSceneGraph.onCommand(mCommandQueue.pop());
@@ -113,11 +121,11 @@ void World::initializePatterns()
         {N,D,C,N,P,N},
         {D,N,P,N,A,N}
     };
-    mPatterns.push_back(Pattern(pattern1, "Pentatonic: Pattern 1"));
-    mPatterns.push_back(Pattern(pattern2, "Pentatonic: Pattern 2"));
-    mPatterns.push_back(Pattern(pattern3, "Pentatonic: Pattern 3"));
-    mPatterns.push_back(Pattern(pattern4, "Pentatonic: Pattern 4"));
-    mPatterns.push_back(Pattern(pattern5, "Pentatonic: Pattern 5"));
+    mPatterns.push_back(Pattern(pattern1, "Pentatonic: Pattern 1", mIterationLimits));
+    mPatterns.push_back(Pattern(pattern2, "Pentatonic: Pattern 2", mIterationLimits));
+    mPatterns.push_back(Pattern(pattern3, "Pentatonic: Pattern 3", mIterationLimits));
+    mPatterns.push_back(Pattern(pattern4, "Pentatonic: Pattern 4", mIterationLimits));
+    mPatterns.push_back(Pattern(pattern5, "Pentatonic: Pattern 5", mIterationLimits));
 }
 
 const sf::Font& World::getFont() const
@@ -133,7 +141,9 @@ std::string World::getActiveQuestionName() const
         return "diatonic";
     else if(mCurrentQuestionState == Category::MajorRoot)
         return "major root";
-    return "minor root";
+    else if(mCurrentQuestionState == Category::MinorRoot)
+        return "minor root";
+    return "None";
 }
 
 std::string World::getActivePatternName() const
@@ -143,21 +153,16 @@ std::string World::getActivePatternName() const
 
 void World::updateQuestionState()
 {
-    unsigned pentatonicGuessed = 0, diatonicGuessed = 0, majorRootGuessed = 0, minorRootGuessed = 0;
+    unsigned pentatonicGuessed = 0, diatonicGuessed = 0,
+             majorRootGuessed = 0, minorRootGuessed = 0;
     int errorCount = 0;
-    bool reset = false;
     for(const auto& i : mSceneGraph.getTree())
     {
         CircleNode* node = dynamic_cast<CircleNode*>(i.get());
         if(node != nullptr)
         {
-            if(node->isInPauseState())
+            if(node->isShowingSolution())
                 return;
-            if(node->wasResetted())
-            {
-                reset = true;
-                node->deactivateResetFlag();
-            }
             errorCount += node->getErrorCount();
             if(node->guessed())
             {
@@ -189,9 +194,6 @@ void World::updateQuestionState()
     }
     mTotalErrorCount = errorCount;
 
-    if(reset)
-        mCurrentQuestionState = Category::Pentatonic;
-
     if(mCurrentQuestionState == Category::Pentatonic && pentatonicGuessed == mPatterns[mCurrentPatternIndex].numberOfPentatonicNotes)
         mCurrentQuestionState = Category::Diatonic;
     if(mCurrentQuestionState == Category::Diatonic && diatonicGuessed == mPatterns[mCurrentPatternIndex].numberOfDiatonicNotes)
@@ -201,9 +203,6 @@ void World::updateQuestionState()
     if(mCurrentQuestionState == Category::MinorRoot && minorRootGuessed == mPatterns[mCurrentPatternIndex].numberOfMinorRoots)
         mCurrentQuestionState = Category::None;
 
-    if(mCurrentQuestionState == Category::None)
-        setNextPatternActive();
-
     for(const auto& i : mSceneGraph.getTree())
     {
         CircleNode* node = dynamic_cast<CircleNode*>(i.get());
@@ -212,22 +211,22 @@ void World::updateQuestionState()
     }
 }
 
-void World::setNextPatternActive()
+void World::copyCurrentPatternToNodes()
 {
-    if(++mCurrentPatternIndex == mPatterns.size())
-        mCurrentPatternIndex = 0;
     mCurrentQuestionState = Category::Pentatonic;
-    int i = 0, j = 0;
+    int i = mIterationLimits.yMin, j = mIterationLimits.xMin;
     for(const auto& node : mSceneGraph.getTree())
     {
-        CircleNode* squareNode = dynamic_cast<CircleNode*>(node.get());
-        if(squareNode != nullptr)
-            squareNode->resetStates();
-        node.get()->setCategory(mPatterns[mCurrentPatternIndex].mCategoryInformation[i][j]);
-        if(++j == FIELD_SIZE)
+        CircleNode* circleNode = dynamic_cast<CircleNode*>(node.get());
+        if(circleNode != nullptr)
         {
-            j = 0;
-            ++i;
+            circleNode->resetStates();
+            node.get()->setCategory(mPatterns[mCurrentPatternIndex].mCategoryInformation[i][j]);
+            if(++j == mIterationLimits.xMax)
+            {
+                j = 0;
+                ++i;
+            }
         }
     }
 }
@@ -235,4 +234,70 @@ void World::setNextPatternActive()
 int World::getTotalErrorCount() const
 {
     return mTotalErrorCount;
+}
+
+void World::showNextPattern()
+{
+    if(++mCurrentPatternIndex == mPatterns.size())
+        mCurrentPatternIndex = 0;
+    copyCurrentPatternToNodes();
+}
+
+void World::showPreviousPattern()
+{
+    if(mCurrentPatternIndex == 0)
+        mCurrentPatternIndex = mPatterns.size() - 1;
+    else
+        --mCurrentPatternIndex;
+    copyCurrentPatternToNodes();
+}
+
+void World::checkCommunicator()
+{
+    if(mCommunicator->mShowNextPatternState)
+    {
+        mCommunicator->mShowNextPatternState = false;
+        showNextPattern();
+    }
+    if(mCommunicator->mShowPreviousPatternState)
+    {
+        mCommunicator->mShowPreviousPatternState = false;
+        showPreviousPattern();
+    }
+    if(mCommunicator->mResetCurrentPatternState)
+    {
+        mCommunicator->mResetCurrentPatternState = false;
+        copyCurrentPatternToNodes();
+    }
+    if(mCommunicator->mToggleBassState)
+    {
+        mCommunicator->mToggleBassState = false;
+        toggleBassState();
+    }
+}
+
+void World::toggleBassState()
+{
+    mBassStateActive = !mBassStateActive;
+    if(mBassStateActive)
+    {
+        mIterationLimits.setBassLimits();
+        mBackgroundTexture.loadFromFile("resources/GriffbrettBass.png");
+    }
+    else
+    {
+        mIterationLimits.setGuitarLimits();
+        mBackgroundTexture.loadFromFile("resources/Griffbrett.png");
+    }
+    for(Pattern& i : mPatterns)
+        i.countNotes(mIterationLimits);
+
+    addGameField();
+    copyCurrentPatternToNodes();
+    mBackgroundSprite.setTexture(mBackgroundTexture);
+}
+
+bool World::bassStateActive() const
+{
+    return mBassStateActive;
 }
