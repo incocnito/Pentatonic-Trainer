@@ -6,7 +6,8 @@
 #include <tuple>
 
 Player::Player() :
-    mBassPitchActive(false)
+    mBassPitchActive(false),
+    mShowingSolution(false)
 {
 
 }
@@ -154,6 +155,12 @@ void Player::loadSounds()
 
 void Player::showSolution(CommandQueue& commands)
 {
+    mShowingSolution = !mShowingSolution;
+    if(!mShowingSolution)
+    {
+        resetCurrentPattern(commands);
+        return;
+    }
     Command command;
     command.category = Category::All | Category::End;
     command.action = [=] (SceneNode& s)
@@ -234,4 +241,9 @@ void Player::toggleBassState(CommandQueue& commands)
         }
     }
     #endif
+}
+
+bool Player::showingSolutionState() const
+{
+    return mShowingSolution;
 }

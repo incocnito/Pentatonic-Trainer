@@ -54,6 +54,7 @@ private:
     };
 
     bool                    mBassPitchActive;
+    bool                    mShowingSolution;
 
 private:
     void					createCommand(	const std::function<void(SceneNode&)>& action,
@@ -68,6 +69,7 @@ public:
 	Player();
 	void	handleEvent(const sf::Event& event, std::vector<sf::RectangleShape>& buttons, CommandQueue& commands);
 	void	handleRealtimeInput(const sf::RenderWindow& window, std::vector<sf::RectangleShape>& buttons, CommandQueue& commands);
+	bool    showingSolutionState() const;
 	#ifdef SOUND_ON
 	void    loadSounds();
 	#endif

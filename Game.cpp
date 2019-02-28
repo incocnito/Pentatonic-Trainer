@@ -53,6 +53,8 @@ void Game::render()
     mWindow.draw(mWorld);
     if(mWorld.bassStateActive())
         mButtons[4].setOutlineColor(sf::Color::Blue);
+    if(mPlayer.showingSolutionState())
+        mButtons[2].setOutlineColor(sf::Color::Blue);
     for(auto& button : mButtons)
         mWindow.draw(button);
     while(!mTextStack.empty())
