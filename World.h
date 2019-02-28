@@ -104,11 +104,12 @@ private:
     IterationLimits                 mIterationLimits;
 
     std::vector<Pattern>            mPatterns;
-    Notes                           mNotePattern;
     unsigned                        mCurrentPatternIndex;
     unsigned                        mCurrentQuestionState;
     int                             mTotalErrorCount;
+    Notes                           mNotePattern;
     bool                            mBassStateActive;
+
 
 public:
                                     World();

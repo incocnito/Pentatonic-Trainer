@@ -34,9 +34,9 @@ void World::addGameField()
         rootPosition.y = 243;
     sf::Vector2f currentPosition = rootPosition;
 
-    for(int i = mIterationLimits.yMin; i < mIterationLimits.yMax; ++i)
+    for(unsigned i = mIterationLimits.yMin; i < mIterationLimits.yMax; ++i)
     {
-        for(int j = mIterationLimits.xMin; j < mIterationLimits.xMax; ++j)
+        for(unsigned j = mIterationLimits.xMin; j < mIterationLimits.xMax; ++j)
         {
             std::unique_ptr<CircleNode> square(new CircleNode(mFont, currentPosition, Category::None, mNotePattern[i][j]));
             mSceneGraph.attachChild(std::move(std::unique_ptr<CircleNode>(std::move(square))));
@@ -217,7 +217,7 @@ void World::updateQuestionState()
 void World::copyCurrentPatternToNodes(bool reset)
 {
     mCurrentQuestionState = Category::Pentatonic;
-    int i = mIterationLimits.yMin, j = mIterationLimits.xMin;
+    unsigned i = mIterationLimits.yMin, j = mIterationLimits.xMin;
     for(const auto& node : mSceneGraph.getTree())
     {
         CircleNode* circleNode = dynamic_cast<CircleNode*>(node.get());

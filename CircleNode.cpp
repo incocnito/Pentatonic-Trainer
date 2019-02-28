@@ -59,7 +59,7 @@ bool CircleNode::correctGuess() const
     if(mRootGuessed && (mCurrentQuestionState & (Category::MajorRoot | Category::MinorRoot)))
        return false;
     if(mCurrentQuestionState == getCategory() ||
-       (getCategory() & (Category::MajorRoot | Category::MinorRoot)) && mCurrentQuestionState == Category::Pentatonic)
+       ((getCategory() & (Category::MajorRoot | Category::MinorRoot)) && mCurrentQuestionState == Category::Pentatonic))
         return true;
     return false;
 }
@@ -76,8 +76,8 @@ bool CircleNode::rootGuessed() const
 
 void CircleNode::setGuessedToTrue()
 {
-    if(mCurrentQuestionState == Category::MajorRoot && getCategory() & Category::MajorRoot ||
-       mCurrentQuestionState == Category::MinorRoot && getCategory() & Category::MinorRoot)
+    if((mCurrentQuestionState == Category::MajorRoot && getCategory() & Category::MajorRoot) ||
+       (mCurrentQuestionState == Category::MinorRoot && getCategory() & Category::MinorRoot))
        mRootGuessed = true;
 
     mGuessed = true;
