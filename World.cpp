@@ -1,5 +1,6 @@
 #include "World.h"
 #include "Category.h"
+#include <iostream>
 
 World::World() :
     mCurrentPatternIndex(0),
@@ -23,10 +24,10 @@ World::World() :
 
     initializePatterns();
 
-    addGameField();
+    addGameField(false);
 }
 
-void World::addGameField()
+void World::addGameField(bool showSolution)
 {
     mSceneGraph.clearTree();
     sf::Vector2f rootPosition(250, 175);
@@ -38,8 +39,10 @@ void World::addGameField()
     {
         for(unsigned j = mIterationLimits.xMin; j < mIterationLimits.xMax; ++j)
         {
-            std::unique_ptr<CircleNode> square(new CircleNode(mFont, currentPosition, Category::None, mNotePattern[i][j]));
-            mSceneGraph.attachChild(std::move(std::unique_ptr<CircleNode>(std::move(square))));
+            std::unique_ptr<CircleNode> circle(new CircleNode(mFont, currentPosition, Category::None, mNotePattern[i][j]));
+            if(showSolution)
+                circle->enableSolutionState();
+            mSceneGraph.attachChild(std::move(std::unique_ptr<CircleNode>(std::move(circle))));
             if(j == 0)
                 currentPosition.x = 282;
             else
@@ -52,7 +55,7 @@ void World::addGameField()
     node->setCategory(Category::Communicator);
     mCommunicator = node.get();
     mSceneGraph.attachChild(std::move(std::unique_ptr<CommunicatorNode>(std::move(node))));
-    copyCurrentPatternToNodes(true);
+    copyCurrentPatternToNodes(showSolution);
 }
 
 CommandQueue& World::getCommandQueue()
@@ -214,7 +217,7 @@ void World::updateQuestionState()
     }
 }
 
-void World::copyCurrentPatternToNodes(bool reset)
+void World::copyCurrentPatternToNodes(bool showSolution)
 {
     mCurrentQuestionState = Category::Pentatonic;
     unsigned i = mIterationLimits.yMin, j = mIterationLimits.xMin;
@@ -224,7 +227,7 @@ void World::copyCurrentPatternToNodes(bool reset)
         if(circleNode != nullptr)
         {
             circleNode->setCategory(mPatterns[mCurrentPatternIndex].mCategoryInformation[i][j]);
-            if(circleNode->isShowingSolution() && !reset)
+            if(circleNode->isShowingSolution() && showSolution)
             {
                 circleNode->resetStates();
                 circleNode->enableSolutionState();
@@ -250,7 +253,7 @@ void World::showNextPattern()
 {
     if(++mCurrentPatternIndex == mPatterns.size())
         mCurrentPatternIndex = 0;
-    copyCurrentPatternToNodes(false);
+    copyCurrentPatternToNodes(true);
 }
 
 void World::showPreviousPattern()
@@ -259,7 +262,7 @@ void World::showPreviousPattern()
         mCurrentPatternIndex = mPatterns.size() - 1;
     else
         --mCurrentPatternIndex;
-    copyCurrentPatternToNodes(false);
+    copyCurrentPatternToNodes(true);
 }
 
 void World::checkCommunicator()
@@ -288,6 +291,7 @@ void World::checkCommunicator()
 
 void World::toggleBassState()
 {
+    bool showSolutionState = dynamic_cast<CircleNode*>(mSceneGraph.getTree()[0].get())->isShowingSolution();
     mBassStateActive = !mBassStateActive;
     if(mBassStateActive)
     {
@@ -302,8 +306,7 @@ void World::toggleBassState()
     for(Pattern& i : mPatterns)
         i.countNotes(mIterationLimits);
 
-    addGameField();
-    copyCurrentPatternToNodes(true);
+    addGameField(showSolutionState);
     mBackgroundSprite.setTexture(mBackgroundTexture);
 }
 

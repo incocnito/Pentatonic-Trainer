@@ -129,13 +129,13 @@ private:
     //in zukunft: kein festes 6x6 feld, sondern jedes feld wird mit dem pattern erzeugt und bei einem
     //neuen pattern ersetzt
     void                            loadPatternsFromFolder(const std::string& path);
-    void                            addGameField();
+    void                            addGameField(bool showSolution);
     void                            initializePatterns();
     void                            updateQuestionState();
     void                            showNextPattern();
     void                            showPreviousPattern();
     void                            checkCommunicator();
-    void                            copyCurrentPatternToNodes(bool reset);
+    void                            copyCurrentPatternToNodes(bool showSolution);
 
 };
 
