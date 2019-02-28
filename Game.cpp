@@ -5,8 +5,8 @@ Game::Game() :
 {
     addButton(50, 30, sf::Vector2f(220, 35));
     addButton(50, 30, sf::Vector2f(490, 35));
-    addButton(200, 30, sf::Vector2f(560, 230));
     addButton(200, 30, sf::Vector2f(560, 270));
+    addButton(200, 30, sf::Vector2f(560, 230));
     addButton(200, 30, sf::Vector2f(560, 310));
     mWindow.setFramerateLimit(30);
     #ifdef SOUND_ON
@@ -88,8 +88,8 @@ void Game::updateHeadline()
 {
     addText(240, 35, "<-", sf::Color::Black, 20);
     addText(510, 35, "->", sf::Color::Black, 20);
-    addText(565, 230, "Show solution [S]", sf::Color::Black, 20);
-    addText(565, 270, "Reset [R]", sf::Color::Black, 20);
+    addText(565, 270, "Show solution [S]", sf::Color::Black, 20);
+    addText(565, 230, "Reset [R]", sf::Color::Black, 20);
     addText(565, 310, "Toggle bass mode [B]", sf::Color::Black, 20);
     addText(290, 35, mWorld.getActivePatternName(), sf::Color::Black, 20);
     if(mWorld.getActiveQuestionName() == "None")

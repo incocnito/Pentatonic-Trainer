@@ -29,7 +29,7 @@ World::World() :
 void World::addGameField()
 {
     mSceneGraph.clearTree();
-    sf::Vector2f rootPosition(282, 175);
+    sf::Vector2f rootPosition(250, 175);
     if(mBassStateActive)
         rootPosition.y = 243;
     sf::Vector2f currentPosition = rootPosition;
@@ -40,7 +40,10 @@ void World::addGameField()
         {
             std::unique_ptr<CircleNode> square(new CircleNode(mFont, currentPosition, Category::None, mNotePattern[i][j]));
             mSceneGraph.attachChild(std::move(std::unique_ptr<CircleNode>(std::move(square))));
-            currentPosition.x += 37;
+            if(j == 0)
+                currentPosition.x = 282;
+            else
+                currentPosition.x += 37;
         }
         currentPosition.y += 34;
         currentPosition.x = rootPosition.x;
@@ -49,7 +52,7 @@ void World::addGameField()
     node->setCategory(Category::Communicator);
     mCommunicator = node.get();
     mSceneGraph.attachChild(std::move(std::unique_ptr<CommunicatorNode>(std::move(node))));
-    copyCurrentPatternToNodes();
+    copyCurrentPatternToNodes(true);
 }
 
 CommandQueue& World::getCommandQueue()
@@ -75,51 +78,51 @@ void World::update()
 void World::initializePatterns()
 {
     using namespace Category;
-    unsigned N = None, D = Diatonic, P = Pentatonic, C = MajorRoot, A = MinorRoot;
+    unsigned N = None, D = Diatonic, P = Pentatonic, C = MajorRoot, A = MinorRoot, E = End;
     Vec2D pattern1
     {
-        {N,A,N,D,C,N},
-        {N,P,D,N,P,N},
-        {N,C,N,P,N,N},
-        {N,P,N,A,N,D},
-        {N,P,N,P,D,N},
-        {N,A,N,D,C,N}
+        {A,N,D,C,E,E},
+        {P,D,N,P,E,E},
+        {C,N,P,N,E,E},
+        {P,N,A,N,E,E},
+        {P,N,P,D,E,E},
+        {A,N,D,C,E,E}
     };
     Vec2D pattern2
     {
-        {N,D,C,N,P,N},
-        {N,N,P,N,A,N},
-        {N,P,N,P,D,N},
-        {N,A,N,D,C,N},
-        {N,P,D,N,P,N},
-        {N,D,C,N,P,N}
+        {D,C,N,P,E,E},
+        {N,P,N,A,E,E},
+        {P,N,P,D,E,E},
+        {A,N,D,C,E,E},
+        {P,D,N,P,E,E},
+        {D,C,N,P,E,E}
     };
     Vec2D pattern3
     {
-        {N,P,N,P,D,N},
-        {N,A,N,D,C,N},
-        {P,D,N,P,N,N},
-        {N,C,N,P,N,D},
-        {N,P,N,A,N,D},
-        {N,P,N,P,D,N}
+        {N,P,N,P,D,E},
+        {N,A,N,D,C,E},
+        {P,D,N,P,N,E},
+        {D,C,N,P,N,E},
+        {N,P,N,A,N,E},
+        {N,P,N,P,D,E}
     };
     Vec2D pattern4
     {
-        {N,P,D,N,P,N},
-        {N,D,C,N,P,N},
-        {N,P,N,A,N,N},
-        {N,P,N,P,D,N},
-        {N,A,N,D,C,N},
-        {N,P,D,N,P,N}
+        {P,D,N,P,E,E},
+        {D,C,N,P,E,E},
+        {P,N,A,N,E,E},
+        {P,N,P,D,E,E},
+        {A,N,D,C,E,E},
+        {P,D,N,P,E,E}
     };
     Vec2D pattern5
     {
-        {D,N,P,N,A,N},
-        {N,N,P,N,P,N},
-        {N,A,N,D,C,N},
-        {N,P,D,N,P,N},
-        {N,D,C,N,P,N},
-        {D,N,P,N,A,N}
+        {N,P,N,A,E,E},
+        {N,P,N,P,E,E},
+        {A,N,D,C,E,E},
+        {P,D,N,P,E,E},
+        {D,C,N,P,E,E},
+        {N,P,N,A,E,E}
     };
     mPatterns.push_back(Pattern(pattern1, "Pentatonic: Pattern 1", mIterationLimits));
     mPatterns.push_back(Pattern(pattern2, "Pentatonic: Pattern 2", mIterationLimits));
@@ -195,12 +198,12 @@ void World::updateQuestionState()
     mTotalErrorCount = errorCount;
 
     if(mCurrentQuestionState == Category::Pentatonic && pentatonicGuessed == mPatterns[mCurrentPatternIndex].numberOfPentatonicNotes)
-        mCurrentQuestionState = Category::Diatonic;
-    if(mCurrentQuestionState == Category::Diatonic && diatonicGuessed == mPatterns[mCurrentPatternIndex].numberOfDiatonicNotes)
         mCurrentQuestionState = Category::MajorRoot;
     if(mCurrentQuestionState == Category::MajorRoot && majorRootGuessed == mPatterns[mCurrentPatternIndex].numberOfMajorRoots)
         mCurrentQuestionState = Category::MinorRoot;
     if(mCurrentQuestionState == Category::MinorRoot && minorRootGuessed == mPatterns[mCurrentPatternIndex].numberOfMinorRoots)
+        mCurrentQuestionState = Category::Diatonic;
+    if(mCurrentQuestionState == Category::Diatonic && diatonicGuessed == mPatterns[mCurrentPatternIndex].numberOfDiatonicNotes)
         mCurrentQuestionState = Category::None;
 
     for(const auto& i : mSceneGraph.getTree())
@@ -211,7 +214,7 @@ void World::updateQuestionState()
     }
 }
 
-void World::copyCurrentPatternToNodes()
+void World::copyCurrentPatternToNodes(bool reset)
 {
     mCurrentQuestionState = Category::Pentatonic;
     int i = mIterationLimits.yMin, j = mIterationLimits.xMin;
@@ -220,8 +223,15 @@ void World::copyCurrentPatternToNodes()
         CircleNode* circleNode = dynamic_cast<CircleNode*>(node.get());
         if(circleNode != nullptr)
         {
-            circleNode->resetStates();
-            node.get()->setCategory(mPatterns[mCurrentPatternIndex].mCategoryInformation[i][j]);
+            circleNode->setCategory(mPatterns[mCurrentPatternIndex].mCategoryInformation[i][j]);
+            if(circleNode->isShowingSolution() && !reset)
+            {
+                circleNode->resetStates();
+                circleNode->enableSolutionState();
+            }
+            else
+                circleNode->resetStates();
+
             if(++j == mIterationLimits.xMax)
             {
                 j = 0;
@@ -240,7 +250,7 @@ void World::showNextPattern()
 {
     if(++mCurrentPatternIndex == mPatterns.size())
         mCurrentPatternIndex = 0;
-    copyCurrentPatternToNodes();
+    copyCurrentPatternToNodes(false);
 }
 
 void World::showPreviousPattern()
@@ -249,7 +259,7 @@ void World::showPreviousPattern()
         mCurrentPatternIndex = mPatterns.size() - 1;
     else
         --mCurrentPatternIndex;
-    copyCurrentPatternToNodes();
+    copyCurrentPatternToNodes(false);
 }
 
 void World::checkCommunicator()
@@ -267,7 +277,7 @@ void World::checkCommunicator()
     if(mCommunicator->mResetCurrentPatternState)
     {
         mCommunicator->mResetCurrentPatternState = false;
-        copyCurrentPatternToNodes();
+        copyCurrentPatternToNodes(true);
     }
     if(mCommunicator->mToggleBassState)
     {
@@ -293,7 +303,7 @@ void World::toggleBassState()
         i.countNotes(mIterationLimits);
 
     addGameField();
-    copyCurrentPatternToNodes();
+    copyCurrentPatternToNodes(true);
     mBackgroundSprite.setTexture(mBackgroundTexture);
 }
 

@@ -11,7 +11,8 @@ namespace Category
         MajorRoot           = 1 << 3,
         MinorRoot           = 1 << 4,
         All                 = None | Pentatonic | Diatonic | MajorRoot | MinorRoot,
-        Communicator        = 1 << 5
+        Communicator        = 1 << 5,
+        End                 = 1 << 6
     };
 };
 

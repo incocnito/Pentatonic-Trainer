@@ -65,9 +65,9 @@ public:
             numberOfMajorRoots = 0;
             numberOfMinorRoots = 0;
 
-            for(int i = limits.yMin; i < limits.yMax; ++i)
+            for(unsigned i = limits.yMin; i < limits.yMax; ++i)
             {
-                for(int j = limits.xMin; j < limits.xMax; ++j)
+                for(unsigned j = limits.xMin; j < limits.xMax; ++j)
                 {
                     unsigned cat = mCategoryInformation[i][j];
                     if(cat & Pentatonic || cat & MajorRoot || cat & MinorRoot)
@@ -134,7 +134,7 @@ private:
     void                            showNextPattern();
     void                            showPreviousPattern();
     void                            checkCommunicator();
-    void                            copyCurrentPatternToNodes();
+    void                            copyCurrentPatternToNodes(bool reset);
 
 };
 

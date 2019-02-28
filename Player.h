@@ -24,7 +24,6 @@ private:
         std::string     mName;
         Note& operator++()
         {
-            int number = static_cast<int>(mName[1]) - 48;
             if(++mName[1] == '6')
             {
                 mName[1] = '0';

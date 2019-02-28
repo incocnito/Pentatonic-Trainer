@@ -58,7 +58,8 @@ bool CircleNode::correctGuess() const
         return false;
     if(mRootGuessed && (mCurrentQuestionState & (Category::MajorRoot | Category::MinorRoot)))
        return false;
-    if(mCurrentQuestionState == getCategory() || (getCategory() & (Category::MajorRoot | Category::MinorRoot)) && mCurrentQuestionState == Category::Pentatonic)
+    if(mCurrentQuestionState == getCategory() ||
+       (getCategory() & (Category::MajorRoot | Category::MinorRoot)) && mCurrentQuestionState == Category::Pentatonic)
         return true;
     return false;
 }

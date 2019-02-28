@@ -28,7 +28,7 @@ void Player::handleRealtimeInput(const sf::RenderWindow& window, std::vector<sf:
         }
     };
     commands.push(command);
-    for(int i = 0; i < buttons.size(); ++i)
+    for(unsigned i = 0; i < buttons.size(); ++i)
     {
         if(buttons[i].getGlobalBounds().contains(mousePosition))
             buttons[i].setOutlineColor(sf::Color::Blue);
@@ -45,7 +45,7 @@ void Player::handleEvent(const sf::Event& event, std::vector<sf::RectangleShape>
         {
             sf::Vector2f position = sf::Vector2f(event.mouseButton.x, event.mouseButton.y);
             selectCircle(position, commands);
-            for(int i = 0; i < buttons.size(); ++i)
+            for(unsigned i = 0; i < buttons.size(); ++i)
             {
                 if(buttons[i].getGlobalBounds().contains(position))
                 {
@@ -155,7 +155,7 @@ void Player::loadSounds()
 void Player::showSolution(CommandQueue& commands)
 {
     Command command;
-    command.category = Category::All;
+    command.category = Category::All | Category::End;
     command.action = [=] (SceneNode& s)
     {
         CircleNode* node = dynamic_cast<CircleNode*>(&s);
