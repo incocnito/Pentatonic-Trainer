@@ -280,7 +280,7 @@ void World::checkCommunicator()
     if(mCommunicator->mResetCurrentPatternState)
     {
         mCommunicator->mResetCurrentPatternState = false;
-        copyCurrentPatternToNodes(true);
+        copyCurrentPatternToNodes(false);
     }
     if(mCommunicator->mToggleBassState)
     {
