@@ -1,13 +1,14 @@
 #include "Game.h"
 
 Game::Game() :
-    mWindow(sf::VideoMode(800, 600), "Pentatonic-Trainer 2.0", sf::Style::Close)
+    mWindow(sf::VideoMode(800, 600), "Pentatonic-Trainer 2.1.1", sf::Style::Close)
 {
     addButton(50, 30, sf::Vector2f(220, 35));
     addButton(50, 30, sf::Vector2f(490, 35));
     addButton(200, 30, sf::Vector2f(560, 270));
     addButton(200, 30, sf::Vector2f(560, 230));
     addButton(200, 30, sf::Vector2f(560, 310));
+    addButton(200, 30, sf::Vector2f(560, 350));
     mWindow.setFramerateLimit(30);
     #ifdef SOUND_ON
     addText(100, 100, "Loading Sounds...", sf::Color::White);
@@ -55,6 +56,8 @@ void Game::render()
         mButtons[4].setOutlineColor(sf::Color::Blue);
     if(mPlayer.showingSolutionState())
         mButtons[2].setOutlineColor(sf::Color::Blue);
+    if(mPlayer.isMute())
+        mButtons[5].setOutlineColor(sf::Color::Blue);
     for(auto& button : mButtons)
         mWindow.draw(button);
     while(!mTextStack.empty())
@@ -88,11 +91,12 @@ void Game::addText(float x, float y, const std::string& string, const sf::Color&
 
 void Game::updateHeadline()
 {
-    addText(240, 35, "<-", sf::Color::Black, 20);
-    addText(510, 35, "->", sf::Color::Black, 20);
+    addText(230, 35, "[<-]", sf::Color::Black, 20);
+    addText(500, 35, "[->]", sf::Color::Black, 20);
     addText(565, 270, "Show solution [S]", sf::Color::Black, 20);
     addText(565, 230, "Reset [R]", sf::Color::Black, 20);
     addText(565, 310, "Toggle bass mode [B]", sf::Color::Black, 20);
+    addText(565, 350, "Mute [M]", sf::Color::Black, 20);
     addText(290, 35, mWorld.getActivePatternName(), sf::Color::Black, 20);
     if(mWorld.getActiveQuestionName() == "None")
         addText(280, 101, "You finished this pattern. Hooray!");

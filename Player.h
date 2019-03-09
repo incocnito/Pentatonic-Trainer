@@ -55,10 +55,11 @@ private:
 
     bool                    mBassPitchActive;
     bool                    mShowingSolution;
+    bool                    mMute;
 
 private:
     void					createCommand(	const std::function<void(SceneNode&)>& action,
-											unsigned category);
+											unsigned category, CommandQueue& commands);
     #ifdef SOUND_ON
     sf::SoundBuffer         mWrongSoundBuffer;
     sf::Sound               mWrongSound;
@@ -70,6 +71,7 @@ public:
 	void	handleEvent(const sf::Event& event, std::vector<sf::RectangleShape>& buttons, CommandQueue& commands);
 	void	handleRealtimeInput(const sf::RenderWindow& window, std::vector<sf::RectangleShape>& buttons, CommandQueue& commands);
 	bool    showingSolutionState() const;
+	bool    isMute() const;
 	#ifdef SOUND_ON
 	void    loadSounds();
 	#endif
@@ -82,6 +84,7 @@ public:
 	void    skipToPreviousPattern(CommandQueue& commands);
 	void    resetCurrentPattern(CommandQueue& commands);
 	void    toggleBassState(CommandQueue& commands);
+	void    muteSounds();
 };
 
 #endif // PLAYER_H_INCLUDED
